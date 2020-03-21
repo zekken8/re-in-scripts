@@ -1,0 +1,8 @@
+#!/bin/bash
+$filename1
+sudo iptables -L
+echo "================================================="
+echo "***Name of the iptables file?***"
+intput=$filename1 
+echo "================================================="
+sudo iptables-save>$filename1.txt

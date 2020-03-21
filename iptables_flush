@@ -1,0 +1,7 @@
+#!/bin/bash
+sudo iptables -L
+echo "================================================="
+sudo iptables -F
+echo "***flushing iptables***"
+echo "================================================="
+sudo iptables -L
