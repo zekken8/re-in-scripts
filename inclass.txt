@@ -1,0 +1,304 @@
+				Core 1
+en
+conf t
+int g0/0
+ip add 195.165.85.254 255.255.255.0
+no shut
+int g0/1
+ip add 10.1.0.1 255.255.255.252
+ip net inside 
+no shut
+int g0/2
+ip add 18.1.0.2 255.255.255.252
+ip net outside
+no shut
+int g0/0/0
+ip add 10.1.0.9 255.255.255.252
+no shut
+exit
+router ospf 1
+redistribute static
+network 10.1.0.0 0.0.0.3 area 0
+network 10.1.0.8 0.0.0.3 area 0
+network 195.165.85.0 0.0.0.255 area 0
+exit
+ip nat pool pool1 18.1.0.2 18.1.0.2 netmask 255.255.255.252
+ip nat inside source list 1 interface gigabitethernet0/2 overload 
+ip route 0.0.0.0 0.0.0.0 18.1.0.1
+access-list 1 permit 172.16.1.96 0.0.0.31
+access-list 1 permit 172.16.1.64 0.0.0.31
+access-list 1 permit 172.16.1.32 0.0.0.31
+access-list 1 permit 172.16.1.0 0.0.0.31
+access-list 1 permit 172.16.1.128 0.0.0.31
+access-list 1 permit 172.16.1.160 0.0.0.31
+access-list 1 permit 172.16.1.192 0.0.0.31
+
+				Core 2
+en
+conf t
+int g0/1
+ip add 10.1.0.5 255.255.255.252
+ip nat inside 
+no shut
+int g0/2
+ip add 18.1.0.6 255.255.255.252
+ip nat outside
+no shut
+int g0/0/0
+ip add 10.1.0.10 255.255.255.252
+no shut
+exit
+router ospf 1
+network 10.1.0.4 0.0.0.3 area 0
+network 10.1.0.3 0.0.0.3 area 0
+exit
+ip nat pool pool1 18.1.0.6 18.1.0.6 netmask 255.255.255.252
+ip nat inside source list 1 interface gigabitethernet0/2 overload 
+access-list 1 permit 172.16.1.0 0.0.0.255
+access-list 1 permit 0.0.0.0 255.255.255.224
+
+				Access 1
+en
+conf t
+
+int fastethernet0/1
+switchport access vlan 5
+switchport mode access 
+spanning-tree portfast
+no shut
+int fastethernet0/2
+switchport access vlan 10
+switchport mode access 
+spanning-tree portfast
+no shut
+int fastethernet0/3
+switchport access vlan 12
+switchport mode access 
+spanning-tree portfast
+no shut
+int fastethernet0/4
+switchport access vlan 15
+switchport mode access 
+spanning-tree portfast
+no shut
+interface range fastethernet0/5-23
+switchport access vlan 99
+switchport mode access
+no shut
+int fastethernet0/24
+switchport trunk allowed vlan 5,10,12,15,20,25,30
+switchport mode trunk
+no shut
+int g0/1
+switchport trunk allowed vlan 5,10,12,15
+switchport mode trunk
+no shut
+int g0/2
+switchport access vlan 99
+switchport mode access
+no shut
+
+				Access 2
+en
+conf t
+
+int fa0/1
+switchport access vlan 20
+switchport mode access
+spanning-tree portfast
+no shut
+int fa0/2
+switchport access vlan 25
+switchport mode access
+spanning-tree portfast
+no shut
+int fa0/3
+switchport access vlan 30
+switchport mode access
+spanning-tree portfast
+no shut
+int range fastethernet 0/4-22
+switchport access vlan 99
+switchport mode access
+no shut
+int fa0/23
+switchport trunk allow vlan 5,10,12,15,20,25,30
+switchport mode trunk
+no shut
+int fa0/24
+switchport trunk allow vlan 5,10,12,15,20,25,30
+switchport mode trunk
+no shut
+int g0/1
+switchport trunk allowed vlan 20,25,30
+switchport mode trunk
+no shut
+int g0/2
+switchport access vlan 99
+switchport mode access
+no shut 
+				Access 3
+en
+conf t
+
+int fa0/1
+switchport access vlan 5
+switchport mode access 
+spanning-tree portfast
+no shut  
+int fa0/2
+switchport access vlan 10
+switchport mode access 
+spanning-tree portfast
+no shut  
+int fa0/3
+switchport access vlan 20
+switchport mode access 
+spanning-tree portfast
+no shut  
+int fa0/4
+switchport access vlan 25
+switchport mode access 
+spanning-tree portfast
+no shut  
+int range fastethernet0/5-23
+switchport access vlan 99
+switchport mode access 
+no shut
+
+int fa0/24
+switchport trunk allow vlan 5,10,12,15,20,25,30
+switchport mode trunk
+no shut
+int g0/1
+switchport trunk allowed vlan 5,10,20,25
+switchport mode trunk
+no shut
+int g0/2
+switchport access vlan 99
+switchport mode access
+no shut 
+
+		distribution	
+en
+conf t
+service dhcp
+ip dhcp pool vlan5
+ network 172.16.1.0 255.255.255.224
+ default-router 172.16.1.30
+ip dhcp pool vlan10
+ network 172.16.1.32 255.255.255.224
+ default-router 172.16.1.62
+ip dhcp pool vlan12
+ network 172.16.1.64 255.255.255.224
+ default-router 172.16.1.94
+ip dhcp pool vlan15
+ network 172.16.1.96 255.255.255.224
+ default-router 172.16.1.126
+ip dhcp pool vlan20
+ network 172.16.1.128 255.255.255.224
+ default-router 172.16.1.158
+ip dhcp pool vlan25
+ network 172.16.1.160 255.255.255.224
+ default-router 172.16.1.190
+ip dhcp pool vlan30
+ network 172.16.1.192 255.255.255.224
+ default-router 172.16.1.222
+exit
+ip dhcp excluded-address 172.16.1.30
+ip dhcp excluded-address 172.16.1.62
+ip dhcp excluded-address 172.16.1.94
+ip dhcp excluded-address 172.16.1.126
+ip dhcp excluded-address 172.16.1.158
+ip dhcp excluded-address 172.16.1.190
+ip dhcp excluded-address 172.16.1.222
+vlan 5
+name Admin
+vlan 10
+name Sales
+vlan 12
+name Accounting
+vlan 15
+name Marketing
+vlan 20
+name R&D
+vlan 25
+name ITAdmin
+vlan 30
+name Facilities
+exit
+ip routing
+interface GigabitEthernet1/0/1
+ no switchport
+ ip address 10.1.0.2 255.255.255.252
+no shut
+interface GigabitEthernet1/0/2
+ no switchport
+ ip address 10.1.0.6 255.255.255.252
+no shut
+interface GigabitEthernet1/0/3
+ switchport trunk allowed vlan 5,10,12,15
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+no shut
+interface GigabitEthernet1/0/4
+ switchport trunk allowed vlan 20,25,30
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+no shut
+interface GigabitEthernet1/0/5
+ switchport trunk allowed vlan 5,10,20,25
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+no shut
+interface range GigabitEthernet1/0/6-24
+ switchport access vlan 99
+ switchport mode access
+no shut
+interface range GigabitEthernet1/1/1-4
+ switchport access vlan 99
+ switchport mode access
+no shut
+exit
+int range g1/0/6-24
+switchport mode access
+switchport access vlan 99
+no shut
+exit
+int range g1/1/1-4
+switchport mode access
+switchport access vlan 99
+no shut
+exit
+interface Vlan5
+ ip address 172.16.1.30 255.255.255.224
+interface Vlan10
+ ip address 172.16.1.62 255.255.255.224
+interface Vlan12
+ ip address 172.16.1.94 255.255.255.224
+interface Vlan15
+ ip address 172.16.1.126 255.255.255.224
+interface Vlan20
+ ip address 172.16.1.158 255.255.255.224
+interface Vlan25
+ ip address 172.16.1.190 255.255.255.224
+interface Vlan30
+ ip address 172.16.1.222 255.255.255.224
+exit
+router ospf 1
+ network 10.1.0.0 0.0.0.3 area 0
+ network 10.1.0.4 0.0.0.3 area 0
+ network 172.16.1.0 0.0.0.31 area 0
+ network 172.16.1.32 0.0.0.31 area 0
+ network 172.16.1.64 0.0.0.31 area 0
+ network 172.16.1.96 0.0.0.31 area 0
+ network 172.16.1.128 0.0.0.31 area 0
+ network 172.16.1.160 0.0.0.31 area 0
+ network 172.16.1.192 0.0.0.31 area 0
+exit
+ip default-network 10.0.0.0
+ip route 0.0.0.0 0.0.0.0 10.1.0.1
+
+
+
+
